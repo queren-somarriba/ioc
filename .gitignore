@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+bin
+docker/docker
+.*.swp
+a.out
+.DS_Store
+*.test
+.git/
+pyenv

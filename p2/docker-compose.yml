@@ -6,8 +6,18 @@ services:
     volumes:
     - ollama_data:/root/.ollama
     - ./entrypoint.sh:/entrypoint.sh
-    entrypoint: ["bin/bash", "/entrypoint.sh"]
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
     container_name: ioc_ollama
+
+  api:
+    build: ./api
+    ports:
+    - "8000:8000"
+    environement:
+    - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+    - ollama
+    container_name: ioc_fastapi
 
 volumes:
   ollama_data: {}
