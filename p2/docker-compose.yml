@@ -1,23 +1,29 @@
 services:
   ollama:
     image: ollama/ollama:latest
+    container_name: ioc_ollama
     ports:
     - "11434:11434"
     volumes:
     - ollama_data:/root/.ollama
-    - ./entrypoint.sh:/entrypoint.sh
+    - ./entrypoint.sh:/entrypoint.sh:ro
     entrypoint: ["/bin/bash", "/entrypoint.sh"]
-    container_name: ioc_ollama
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/ollama_ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 360  # =~ 30 minutes
 
   api:
     build: ./api
+    container_name: ioc_fastapi
     ports:
     - "8000:8000"
     environement:
     - OLLAMA_HOST=http://ollama:11434
     depends_on:
-    - ollama
-    container_name: ioc_fastapi
+      ollama:
+        condition: service_healthy
 
 volumes:
   ollama_data: {}
