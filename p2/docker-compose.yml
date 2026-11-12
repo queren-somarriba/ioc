@@ -19,8 +19,9 @@ services:
     container_name: ioc_fastapi
     ports:
     - "8000:8000"
-    environement:
+    environment:
     - OLLAMA_HOST=http://ollama:11434
+    - OLLAMA_READ_TIMEOUT=${OLLAMA_READ_TIMEOUT:-300}
     depends_on:
       ollama:
         condition: service_healthy

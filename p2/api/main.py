@@ -1,15 +1,15 @@
 import os
 import requests
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 from collections.abc import Iterator
 from typing import Any, Literal
-
+from ollama_client import OLLAMA_HOST, TIMEOUT, OllamaError
 app = FastAPI(title="Proxy API Ollama", version="1.1.0")
 
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
-TIMEOUT = (5, 30)  # (connect, resd)
+# OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+# TIMEOUT = (5, 30)  # (connect, resd)
 
 
 # ==========================================
@@ -29,7 +29,7 @@ class OllamaRequest(BaseModel):
 
 
 class ChatRequest(OllamaRequest):
-    messages: list[ChatMessage] = Field(..., min_lenght=1, description="Messages history")
+    messages: list[ChatMessage] = Field(..., min_length=1, description="Messages history")
 
 
 class GenerateRequest(OllamaRequest):
@@ -69,7 +69,18 @@ def forward(path: str, payload: OllamaRequest):
 
     if payload.stream:
         return StreamingResponse(iter_ndjson(resp), media_type="application/x-ndjson")
-    return resp.json()
+    try:
+        return resp.json()
+    except ValueError as e:
+        raise HTTPException(status_code=502, detail="Ollama returned invalid JSON.") from e
+
+
+@app.exception_handler(OllamaError)
+def ollama_error_handler(request, exc: OllamaError):
+    """
+    Any OllamaError raised by th einternal clien(/ask, patch loop) becomes a clean 502.
+    """
+    return JSONResponse(status_code=502, content={"detail": str(exc)})
 
 
 # ==========================================
@@ -86,7 +97,7 @@ def proxy_chat(payload: ChatRequest):
     """
     Chat route validated with Pydantic, forwarded to the Ollama container
     """
-    return forward("/api/chat/", payload)
+    return forward("/api/chat", payload)
 
 
 @app.post("/api/generate")
@@ -94,4 +105,4 @@ def proxy_generate(payload: GenerateRequest):
     """
     Text generation route (single prompt)
     """
-    return forward("/apigenerate", payload)
+    return forward("/api/generate", payload)
