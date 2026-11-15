@@ -13,7 +13,7 @@ col = client.get_or_create_collection(
 
 chunks = [
     ("notes_app/service.py", "search", "function", 29, 36,
-     'ef search(self, term: str) -> list[Note]:\n             term = (term or "").strip().lower()\n             if not term:\n                 return []\n             return [n for n in self.storage.list_all()\n                 if term in n.title.lower() or term in n.body.lower()]'),
+     'def search(self, term: str) -> list[Note]:\n             term = (term or "").strip().lower()\n             if not term:\n                 return []\n             return [n for n in self.storage.list_all()\n                 if term in n.title.lower() or term in n.body.lower()]'),
     ("notes_app/service.py", "create", "function", 17, 21,
      'def create(self, title: str, body: str = "", tags: list[str] | None = None) -> Note:\n        title = (title or "").strip()\n        if not title:\n            raise ValueError("title must not be empty")\n        return self.storage.add(title=title, body=body, tags=tags)')]
 
