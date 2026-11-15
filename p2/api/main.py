@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 from collections.abc import Iterator
 from typing import Any, Literal
 from ollama_client import OLLAMA_HOST, TIMEOUT, OllamaError
+from retrieval import retrieve
+
 app = FastAPI(title="Proxy API Ollama", version="1.1.0")
 
 # OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
@@ -35,6 +37,10 @@ class GenerateRequest(OllamaRequest):
     prompt: str = Field(..., description="Body from the raw request")
     system: str | None = Field(None, description="System prompt")
 
+
+class ContextRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="User intent or question")
+    k: int = Field(5, ge=1, le=20, description="Number of chunks to retrieve")
 
 # ==========================================
 # FORWARDING
@@ -107,3 +113,12 @@ def proxy_generate(payload: GenerateRequest):
     Text generation route (single prompt)
     """
     return forward("/api/generate", payload)
+
+
+@app.post("/context")
+def context(payload: ContextRequest):
+    """
+    Return the top-k most relevant chunks for a given intent.
+    """
+    chunks = retrieve(payload.query, payload.k)
+    return {"query": payload.query, "k": payload.k, "chunks": chunks}
