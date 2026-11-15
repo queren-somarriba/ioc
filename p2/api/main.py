@@ -1,4 +1,3 @@
-import os
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -56,7 +55,8 @@ def iter_ndjson(resp: requests.Response) -> Iterator[bytes]:
 def forward(path: str, payload: OllamaRequest):
     body = payload.model_dump(exclude_none=True)
     try:
-        resp = requests.post(f"{OLLAMA_HOST}{path}", json=body, stream=payload.stream, timeout=TIMEOUT)
+        resp = requests.post(f"{OLLAMA_HOST}{path}", json=body,
+                             stream=payload.stream, timeout=TIMEOUT)
         resp.raise_for_status()
     except requests.exceptions.ConnectionError as e:
         raise HTTPException(status_code=503, detail="Cannot reach Ollame service.") from e
@@ -78,7 +78,8 @@ def forward(path: str, payload: OllamaRequest):
 @app.exception_handler(OllamaError)
 def ollama_error_handler(request, exc: OllamaError):
     """
-    Any OllamaError raised by th einternal clien(/ask, patch loop) becomes a clean 502.
+    Any OllamaError raised by the internal client(/ask, patch loop)
+    becomes a clean 502.
     """
     return JSONResponse(status_code=502, content={"detail": str(exc)})
 
