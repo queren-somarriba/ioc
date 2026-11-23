@@ -1,16 +1,13 @@
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 from collections.abc import Iterator
 from typing import Any, Literal
 from ollama_client import OLLAMA_HOST, TIMEOUT, OllamaError
-from retrieval import retrieve
+from retrieval import retrieve, index_status, list_files, file_chunks, list_chunks
 
 app = FastAPI(title="Proxy API Ollama", version="1.1.0")
-
-# OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
-# TIMEOUT = (5, 30)  # (connect, resd)
 
 
 # ==========================================
@@ -122,3 +119,27 @@ def context(payload: ContextRequest):
     """
     chunks = retrieve(payload.query, payload.k)
     return {"query": payload.query, "k": payload.k, "chunks": chunks}
+
+
+@app.get("/status")
+def status():
+    return index_status()
+
+
+@app.get("/files")
+def files():
+    return list_files()
+
+
+@app.get("/file")
+def file(path: str = Query(..., min_length=1)):
+    chunks = file_chunks(path)
+    if not chunks:
+        raise HTTPException(status_code=404, detail=f"No indexed file: {path}")
+    return {"path": path, "chunks": chunks}
+
+
+@app.get("/chunks")
+def chunks(offset: int = Query(0, ge=0),
+           limit: int = Query(20, ge=1, le=100)):
+    return list_chunks(offset, limit)
