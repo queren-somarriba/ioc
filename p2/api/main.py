@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from typing import Any, Literal
 from ollama_client import OLLAMA_HOST, TIMEOUT, OllamaError
 from retrieval import retrieve, index_status, list_files, file_chunks, list_chunks
+from ask import run_ask
 
 app = FastAPI(title="Proxy API Ollama", version="1.1.0")
 
@@ -38,6 +39,12 @@ class GenerateRequest(OllamaRequest):
 class ContextRequest(BaseModel):
     query: str = Field(..., min_length=1, description="User intent or question")
     k: int = Field(5, ge=1, le=20, description="Number of chunks to retrieve")
+
+
+class AskRequest(BaseModel):
+    question: str = Field(..., min_length=1)
+    k: int = Field(5, ge=1, le=10)
+
 
 # ==========================================
 # FORWARDING
@@ -143,3 +150,8 @@ def file(path: str = Query(..., min_length=1)):
 def chunks(offset: int = Query(0, ge=0),
            limit: int = Query(20, ge=1, le=100)):
     return list_chunks(offset, limit)
+
+
+@app.post("/ask")
+def ask_route(payload: AskRequest):
+    return run_ask(payload.question, payload.k)
