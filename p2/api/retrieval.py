@@ -3,9 +3,14 @@ import chromadb
 from chromadb.utils import embedding_functions
 import re
 from rank_bm25 import BM25Okapi
+from ollama_client import OLLAMA_HOST
 
 CHROMA_PATH = os.getenv("CHROMA_PATH", "./data/chroma")
 COLLECTION_NAME = "code_chunks"
+
+ASK_MODEL = os.getenv("ASK_MODEL", "qwen2.5:3b")
+CODE_MODEL = os.getenv("CODE_MODEL", "qwen2.5-coder:3b")
+TARGET_PATH = os.getenv("TARGET_PATH", "./notes_app/")
 
 _collection = None
 RRF_K = 60
@@ -95,3 +100,39 @@ def retrieve(query: str, k: int = 5) -> list[dict]:
             "rrf": round(rrf[cid], 5)
         })
     return chunks
+
+
+def index_status() -> dict:
+    return {
+        "chunks": get_collection().count(),
+        "target_path": TARGET_PATH,
+        "chroma_path": CHROMA_PATH,
+        "ask_model": ASK_MODEL,
+        "code_model": CODE_MODEL,
+        "ollama_host": OLLAMA_HOST
+    }
+
+
+def list_files() -> list[dict]:
+    metas = get_collection().get(include=["metadatas"])["metadatas"]
+    counts: dict[str, int] = {}
+    for m in metas:
+        counts[m["path"]] = counts.get(m["path"], 0) + 1
+    return [{"path": p, "chunks": n} for p, n in sorted(counts.items())]
+
+
+def file_chunks(path: str) -> list[dict]:
+    r = get_collection().get(where={"path": path}, 
+                             include=["documents", "metadatas"])
+    out = [{"id": i, "document": d, **m}
+           for i, d, m in zip(r["ids"], r["documents"], r["metadatas"])]
+    return sorted(out, key=lambda c: c["start_line"])
+
+
+def list_chunks(offset: int, limit: int) -> dict:
+    col = get_collection()
+    r = col.get(limit=limit, offset=offset, include=["documents", "metadatas"])
+    items = [{"id": i, "document": d, **m}
+             for i, d, m in zip(r["ids"], r["documents"], r["metadatas"])]
+    return {"total": col.count(), "offset": offset,
+            "limit": limit, "items": items}
