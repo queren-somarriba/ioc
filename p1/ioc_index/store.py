@@ -32,7 +32,7 @@ class ChunkStore:
         self.collection.delete(where={"path": path})
 
     def file_chunks(self, path: str) -> dict[str, dict]:
-        """{id: metadata} des chunks actuellement stockés pour un fichier."""
+        """return the metadada of all chunks of a file, keyed by chunk_id"""
         result = self.collection.get(where={"path": path}, include=["metadatas"])
         chunks = {}
         for chunk_id, meta in zip(result["ids"], result["metadatas"]):
@@ -43,7 +43,7 @@ class ChunkStore:
         return self.collection.count()
     
     def indexed_path(self) -> list[str]:
-        """Liste des chemins relatifs actuellement indexés."""
+        """List of path that have chunks in the collection."""
         result = self.collection.get(include=["metadatas"])
         paths = set()
         for meta in result["metadatas"]:

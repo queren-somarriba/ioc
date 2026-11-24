@@ -1,4 +1,4 @@
-"""Orchestration : fichier -> chunks -> embeddings -> Chroma, en incrémental."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -14,8 +14,8 @@ from .walker import FileFilter
 
 @dataclass
 class IndexEvent:
-    """Une ligne du flux d'activité (onglet Overview / SSE)."""
-    type: str        # "indexed" | "deleted"
+    
+    type: str        
     path: str
     chunks: int = 0
 
@@ -27,7 +27,7 @@ class Indexer:
         self.store =ChunkStore(chroma_path=settings.chroma_path, model_cache=settings.model_cache, collection=settings.collection)
 
     def index_file(self, rel_path: str) -> IndexEvent:
-        """(Ré)indexe un seul fichier, sans toucher aux autres."""
+        """Index a file, without changing the index if the file is unchanged."""
         text = self.files.read_text(rel_path)
         if text is None:
             return self.remove_file(rel_path)
@@ -65,7 +65,7 @@ class Indexer:
         return IndexEvent(type="deleted", path=rel_path)
 
     def sync(self) -> None:
-        """Aligne la collection sur l'état du disque."""
+        """Synchronize the index with the current state of the target directory."""
         on_disk = set(self.files.scan())
         in_db = self.store.indexed_path()
         for path in in_db - on_disk:

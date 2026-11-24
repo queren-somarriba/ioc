@@ -1,4 +1,3 @@
-"""Parcours de la cible : quels fichiers sont indexables ?"""
 from __future__ import annotations
 
 from .config import Settings
@@ -19,7 +18,7 @@ class FileFilter:
         self.model_cache = settings.model_cache
 
     def is_excluded(self, rel_path: str) -> bool:
-        """Vrai si le chemin (relatif à la cible) doit être ignoré."""
+        """Determine if the file should be excluded from indexing based on its path and name."""
         for i in Path(rel_path).parts:
             if i in EXCLUDED_DIRS:
                 return True
@@ -33,7 +32,7 @@ class FileFilter:
         return False
 
     def read_text(self, rel_path: str) -> str | None:
-        """Contenu texte du fichier, ou None s'il n'est pas indexable (binaire...)."""
+        """Content of the file."""
         if self.is_excluded(rel_path):
             return None
         path = self.root / rel_path 
@@ -53,7 +52,7 @@ class FileFilter:
             return None
 
     def scan(self) -> list[str]:
-        """Liste des fichiers indexables de la cible (chemins relatifs)."""
+        """List of indexable files in the target."""
         result = []
         for dirpath, dirnames, filenames in os.walk(self.root):
             dirnames[:] = [d for d in dirnames if not self.is_excluded(

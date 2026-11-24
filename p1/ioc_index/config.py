@@ -1,4 +1,4 @@
-"""Réglages de l'indexer (lus depuis les variables d'environnement IOC_*)."""
+
 from __future__ import annotations
 import os
 from dataclasses import dataclass
@@ -15,8 +15,8 @@ MAX_FILE_BYTES = 512 * 1024   # 512 Ko
 
 @dataclass(frozen=True)
 class Settings:
-    target: Path                 # dossier de la demo app à indexer
-    chroma_path: Path            # où ChromaDB persiste (hors de la cible !)
+    target: Path              
+    chroma_path: Path           
     collection: str = "code_chunks"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     model_cache: Path = REPO_ROOT / ".models"

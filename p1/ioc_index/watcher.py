@@ -1,4 +1,4 @@
-"""Surveillance du disque : événements natifs + polling de secours."""
+
 from __future__ import annotations
 
 from .indexer import Indexer
@@ -10,7 +10,7 @@ from watchdog.events import FileSystemEventHandler
 
 
 class _Handler(FileSystemEventHandler):
-    """Reçoit les événements de watchdog et les transmet au Watcher."""
+    """Receive watchdog events and forwards them to the watcher."""
 
     def __init__(self, watcher: "Watcher") -> None:
         self.watcher = watcher
@@ -34,7 +34,7 @@ class Watcher:
         self._thread = None
 
     def _handle(self, abs_path: str) -> None:
-        """Réindexe ou supprime UN fichier signalé par un événement."""
+        """Reindex a file or remove it if it was deleted, based on its absolute path."""
         rel = os.path.relpath(abs_path, self.indexer.settings.target)
         if self.indexer.files.is_excluded(rel):
             return
@@ -46,14 +46,14 @@ class Watcher:
         return
 
     def _poll(self) -> None:
-        """Boucle de secours : sync() toutes les `interval` secondes, jusqu'à stop()."""
+        """Call sync() every self.interval seconds, until stopped."""
         while (self._stop.wait(self.interval) is False):
             with self._lock:
                 self.indexer.sync()
         return
 
     def start(self) -> "Watcher":
-        """Démarre les événements natifs + le thread de polling."""
+        """Start the watchdog and the polling."""
         self._observer = Observer()
         self._observer.schedule(_Handler(self), str(self.indexer.settings.target), recursive=True)
         self._observer.start()
@@ -62,7 +62,7 @@ class Watcher:
         return self
 
     def stop(self) -> None:
-        """Arrête proprement les deux mécanismes."""
+        """Stop the watchdog and the polling."""
         self._stop.set()
         self._observer.stop()
         self._observer.join()
