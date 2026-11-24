@@ -26,9 +26,6 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#   Usually these files are written by a python script from a template
-#   before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -218,3 +215,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# IOC 
+/data/chroma/
+.models/
+*.ioc.tmp
+#Ignore chroma and models in order not to push models and database in the git repository
