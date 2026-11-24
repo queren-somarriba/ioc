@@ -1,0 +1,37 @@
+services:
+  ollama:
+    image: ollama/ollama:0.40.17
+    container_name: ioc_ollama
+    ports:
+    - "11434:11434"
+    volumes:
+    - ollama_data:/root/.ollama
+    - ./entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/ollama_ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 360  # =~ 30 minutes
+
+  api:
+    build: ./p2/api
+    container_name: ioc_fastapi
+    ports:
+    - "8000:8000"
+    environment:
+    - OLLAMA_HOST=http://ollama:11434
+    - OLLAMA_READ_TIMEOUT=${OLLAMA_READ_TIMEOUT:-300}
+    - CHROMA_PATH=/data/chroma
+    - TARGET_PATH=/workspace/
+    - ASK_MODEL=qwen2.5:3b
+    - CODE_MODEL=qwen2.5-coder:3b
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+    - ./data/chroma:/data/chroma:z
+    - ./notes_app:/workspace:ro,z
+
+volumes:
+  ollama_data: {}
