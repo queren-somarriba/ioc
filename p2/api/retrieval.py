@@ -136,3 +136,15 @@ def list_chunks(offset: int, limit: int) -> dict:
              for i, d, m in zip(r["ids"], r["documents"], r["metadatas"])]
     return {"total": col.count(), "offset": offset,
             "limit": limit, "items": items}
+
+
+def find_symbols(name: str,
+                 kinds=("function", "async_function", "class")) -> list[dict]:
+    r = get_collection().get(where={"name": name}, include=["metadatas"])
+    return [m for m in r["metadatas"] if m["kind"] in kinds]
+
+
+def file_symbols(path: str) -> list[dict]:
+    r = get_collection().get(where={"path": path}, include=["metadatas"])
+    metas = [m for m in r["metadatas"] if m["kind"] != "module"]
+    return sorted(metas, key=lambda m: m["start_line"])

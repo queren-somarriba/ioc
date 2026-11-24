@@ -5,8 +5,9 @@ from pydantic import BaseModel, Field
 from collections.abc import Iterator
 from typing import Any, Literal
 from ollama_client import OLLAMA_HOST, TIMEOUT, OllamaError
-from retrieval import retrieve, index_status, list_files, file_chunks, list_chunks
-from ask import run_ask
+from retrieval import (retrieve, index_status, list_files,
+                       file_chunks, list_chunks)
+from ask import ask
 
 app = FastAPI(title="Proxy API Ollama", version="1.1.0")
 
@@ -154,4 +155,4 @@ def chunks(offset: int = Query(0, ge=0),
 
 @app.post("/ask")
 def ask_route(payload: AskRequest):
-    return run_ask(payload.question, payload.k)
+    return ask(payload.question, payload.k)
