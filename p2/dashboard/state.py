@@ -15,9 +15,9 @@ class DashboardState:
     status: dict[str, Any] = field(default_factory=dict)
     files: list[dict[str, Any]] = field(default_factory=list)
     selected_file: str | None = None
-    file_detail: dict[str, Any]| None = None
+    file_detail: dict[str, Any] | None = None
     chunks_page: dict[str, Any] = field(
-        default_factory=lambda: {"items": [], "total": 0, "page": 1, "limit":20}
+        default_factory=lambda: {"items": [], "total": 0, "offset": 0, "limit": 20}
     )
     activity: list[ActivityEvent] = field(defautl_factory=list)
     last_answer: str | None = None
