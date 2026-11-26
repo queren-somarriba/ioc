@@ -1,3 +1,7 @@
+"""
+    Usage: IOC_API_URL=http://localhost:8000 python p2/dashboard/main.py
+"""
+
 from datetime import datetime
 import os
 import asyncio
