@@ -70,7 +70,7 @@ def forward(path: str, payload: OllamaRequest):
                              stream=payload.stream, timeout=TIMEOUT)
         resp.raise_for_status()
     except requests.exceptions.ConnectionError as e:
-        raise HTTPException(status_code=503, detail="Cannot reach Ollame service.") from e
+        raise HTTPException(status_code=503, detail="Cannot reach Ollama service.") from e
     except requests.exceptions.Timeout as e:
         raise HTTPException(status_code=504, detail="Ollama time out.") from e
     except requests.exceptions.HTTPError as e:

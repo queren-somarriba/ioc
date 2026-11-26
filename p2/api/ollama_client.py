@@ -12,7 +12,7 @@ TIMEOUT = (5, float(os.getenv("OLLAMA_READ_TIMEOUT", "300")))
 class OllamaError(RuntimeError):
     """
     Ollama unreachable, timed out, answered with an error,
-    or sent an unexpeced payload.
+    or sent an unexpected payload.
     """
 
 
@@ -29,7 +29,7 @@ def _body(model: str, messages: list[dict], stream: bool,
 def chat(model: str, messages: list[dict], *, fmt: str | dict | None = None,
          options: dict | None = None) -> str:
     """
-    Non-streaming call: returns the fill assistant messwage as a string.
+    Non-streaming call: returns the fill assistant message as a string.
     """
     try:
         r = requests.post(f"{OLLAMA_HOST}/api/chat",
@@ -48,8 +48,8 @@ def chat(model: str, messages: list[dict], *, fmt: str | dict | None = None,
 def chat_stream(model: str, messages: list[dict], *, fmt: str | dict | None = None,
                 options: dict | None = None) -> Iterator[str]:
     """
-    Streaming call: yields text fragmens. Ollama streams NDJSON,
-    one JSON Objet per line.
+    Streaming call: yields text fragments. Ollama streams NDJSON,
+    one JSON Object per line.
     """
     try:
         with requests.post(f"{OLLAMA_HOST}/api/chat",
@@ -67,6 +67,6 @@ def chat_stream(model: str, messages: list[dict], *, fmt: str | dict | None = No
                 if chunk.get("done"):
                     break
     except requests.exceptions.RequestException as e:
-        raise OllamaError(f"strem interrupted: {e}") from e
+        raise OllamaError(f"stream interrupted: {e}") from e
     except ValueError as e:
         raise OllamaError(f"invalid line in Ollama stream: {e}") from e

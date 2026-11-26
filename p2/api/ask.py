@@ -87,7 +87,7 @@ def answer_list(given: str) -> dict:
                        f"Indexed files: {indexed}.", [])
     if len(paths) > 1:
         return _result(f"`{given}` matches several indexed files: "
-                       f"{', '.join(paths)}. Please give the fill path.", [])
+                       f"{', '.join(paths)}. Please give the full path.", [])
     metas = file_symbols(paths[0])
     if not metas:
         return _result(f"{paths[0]} is indexed but defines no function "
