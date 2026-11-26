@@ -24,7 +24,7 @@ class ArchitectApiClient:
 
     async def _request(
             self,
-            client: httpx.AsyncCLient,
+            client: httpx.AsyncClient,
             method: str,
             path: str,
             *,
@@ -52,14 +52,14 @@ class ArchitectApiClient:
     async def get_file(self, path: str) -> dict[str, Any]:
         return await self._request(self._fast_client, "GET", "/file", params={"path": path})
 
-    async def get_chunks(self, page: int = 1, limit: int = 20) -> dict[str, Any]:
+    async def get_chunks(self, offset: int = 0, limit: int = 20) -> dict[str, Any]:
         return await self._request(
-            self._fast_client, "GET", "/chunks", params={"page": page, "limit": limit}
+            self._fast_client, "GET", "/chunks", params={"offset": offset, "limit": limit}
         )
 
-    async def post_context(self, question: str, k: int = 5) -> dict[str, Any]:
+    async def post_context(self, query: str, k: int = 5) -> dict[str, Any]:
         return await self._request(
-            self._llm_client, "POST", "/context", json={"question": question, "k": k}
+            self._llm_client, "POST", "/context", json={"query": query, "k": k}
         )
 
     async def post_ask(self, question: str, k: int = 5) -> dict[str, Any]:
