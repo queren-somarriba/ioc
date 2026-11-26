@@ -19,7 +19,7 @@ class DashboardState:
     chunks_page: dict[str, Any] = field(
         default_factory=lambda: {"items": [], "total": 0, "offset": 0, "limit": 20}
     )
-    activity: list[ActivityEvent] = field(defautl_factory=list)
+    activity: list[ActivityEvent] = field(default_factory=list)
     last_answer: str | None = None
     last_mode: str | None = None
     last_sources: list[dict[str, Any]] = field(default_factory=list)

@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import asyncio
 from nicegui import app, ui
 from api_client import ArchitectApiClient, ApiClientError
 from state import DashboardState
@@ -10,6 +11,16 @@ from tabs.files import render_files_tab
 
 client = ArchitectApiClient()
 state = DashboardState()
+
+async def _initial_load() -> None:
+    await refresh_index_state(record_change=False)
+    await load_chunks_page(
+        client,
+        state,
+        offset=0,
+        limit=int(state.chunks_page.get("limit", 20)),
+        refresh_callback=lambda: render_explorer_tab.refresh(client, state),
+    )
 
 
 async def refresh_index_state(record_change: bool = False) -> None:
@@ -33,28 +44,27 @@ async def refresh_index_state(record_change: bool = False) -> None:
     except ApiClientError:
         state.connected = False
 
-    render_header.refresh()
+    render_header_content.refresh()
     render_overview.refresh()
     if files_changed:
         render_files_tab.refresh(client, state)
 
 
 @ui.refreshable
-def render_header() -> None:
+def render_header_content() -> None:
     total_chunks = state.status.get("chunks", 0)
     ask_model = state.status.get("ask_model") or "n/a"
     code_model = state.status.get("code_model") or "n/a"
 
-    with ui.header().classes("items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800"):
-        with ui.row().classes("items-center gap-3"):
-            ui.label("Inception-of-Context Architect").classes("text-base font-semibold")
-            ui.badge(f"chunks {total_chunks}", color="slate")
-            ui.badge(f"model {ask_model} / {code_model}", color="slate")
-        with ui.row().classes("items-center gap-2"):
-            dot_color = "text-emerald-400" if state.connected else "text-rose-400"
-            label_text = "live" if state.connected else "offline"
-            ui.icon("fiber_manual_record", size="xs").classes(dot_color)
-            ui.label(label_text).classes("text-xs text-slate-300")
+    with ui.row().classes("items-center gap-3"):
+        ui.label("Inception-of-Context Architect").classes("text-base font-semibold")
+        ui.badge(f"chunks {total_chunks}", color="slate")
+        ui.badge(f"model {ask_model} / {code_model}", color="slate")
+    with ui.row().classes("items-center gap-2"):
+        dot_color = "text-emerald-400" if state.connected else "text-rose-400"
+        label_text = "live" if state.connected else "offline"
+        ui.icon("fiber_manual_record", size="xs").classes(dot_color)
+        ui.label(label_text).classes("text-xs text-slate-300")
 
 
 @ui.refreshable
@@ -105,7 +115,8 @@ def render_overview() -> None:
 @ui.page("/")
 async def index_page() -> None:
     ui.dark_mode(True)
-    render_header()
+    with ui.header().classes("items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800"):
+        render_header_content()
 
     with ui.tabs().classes("w-full bg-slate-900 border-b border-slate-800 px-4") as tabs:
         t_overview = ui.tab("Overview")
@@ -138,6 +149,8 @@ async def index_page() -> None:
         limit=int(state.chunks_page.get("limit", 20)),
         refresh_callback=lambda: render_explorer_tab.refresh(client, state),
     )
+
+    asyncio.create_task(_initial_load())
 
     ui.timer(3.0, lambda: refresh_index_state(record_change=True))
 
