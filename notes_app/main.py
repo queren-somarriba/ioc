@@ -53,4 +53,4 @@ def build_page() -> None:
 
 if __name__ in {"__main__", "__mp_main__"}:
     build_page()
-    ui.run(title="Notes demo", port=8080)
+    ui.run(title="Notes demo", port=8081)
