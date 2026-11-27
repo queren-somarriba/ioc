@@ -3,7 +3,6 @@ COMPOSE_FILE	:= docker-compose.yml
 DC		:= $(COMPOSE) -f $(COMPOSE_FILE)
 
 CHROMA_DIR	:= ./data/chroma
-MODELS_DIR	:= ./.models
 
 .DEFAULT_GOAL	:= help
 
@@ -38,9 +37,11 @@ status: ## Check FastAPI /status endpoint once ready
 clean: down ## Stop containers and remove local ChromaDB index data
 	rm -rf $(CHROMA_DIR)
 
-fclean: ## Remove containers, named volumes (Ollama weights), and local caches
+fclean: ## Remove containers, named volumes (Ollama weights), local caches and images
 	$(DC) down -v --remove-orphans
-	rm -rf $(CHROMA_DIR) $(MODELS_DIR)
+	podman system prune -af
+	rm -rf $(CHROMA_DIR)
+
 
 re: fclean up ## Full reset and rebuild from scratch
 
